@@ -4,7 +4,7 @@ import { Html5QrcodeCameraScanConfig } from "html5-qrcode/esm/html5-qrcode";
 
 const Dashboard = () => {
   const [scanner, setScanner] = useState<Html5Qrcode>();
-  const [cameraId, setCameraId] = useState<any>(0);
+  const [decodedResult, setDecodedResult] = useState(undefined);
 
   const qrCodeScannerConfiguration = (): Html5QrcodeCameraScanConfig => {
     let config: Html5QrcodeCameraScanConfig = {
@@ -16,8 +16,9 @@ const Dashboard = () => {
   }
 
   const handleScan = async () => {
+    setDecodedResult(undefined);
     scanner?.start(
-      cameraId,
+      { facingMode: "environment" },
       qrCodeScannerConfiguration(),
       (decodedText, decodedResult) => onScanSuccess(decodedText, decodedResult),
       (errorMessage) => handleError(errorMessage))
@@ -26,6 +27,7 @@ const Dashboard = () => {
 
   const onScanSuccess = (decodedText: any, decodedResult: any) => {
     console.log("Text decoded resulting in: ", decodedResult);
+    setDecodedResult(decodedText)
     stopScanning();
   }
 
@@ -42,7 +44,6 @@ const Dashboard = () => {
   const cameraPermissions = () => {
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        setCameraId(devices[0].id);
         setScanner(new Html5Qrcode("qr_reader"));
       }
     }).catch(err => handleError(err));
@@ -52,27 +53,48 @@ const Dashboard = () => {
     <>
       <h1>Dashboard</h1>
 
-      <div id="qr_reader" style={{
-        width: "350px",
-        height: "240px",
-        position: "relative"
-      }} />
+      <div style={{ marginTop: "20px", marginBottom: "20px", }}>
+        <div id="qr_reader" style={{
+          width: "250px",
+          height: "240px",
+          position: "relative"
+        }} />
+      </div>
 
-      <button type="button" onClick={cameraPermissions} style={{
-        width: "200px",
-        height: "40px",
-        marginTop: "50px",
-        marginRight: "20px",
-      }}>Camera permission</button>
+      {decodedResult && <div id="handleScanResult" style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "left",
+      }} >
+        <h3>{decodedResult}</h3>
+      </div>}
 
-      <button type="button" onClick={handleScan} style={{
-        width: "200px",
-        height: "40px",
-        marginTop: "50px",
-        marginRight: "20px",
-      }}>Scan</button>
+      <div id="handleCamera" style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "left",
+      }} >
+        <button type="button" onClick={cameraPermissions} style={{
+          width: "200px",
+          height: "40px",
+          marginTop: "50px",
+          marginRight: "20px",
+        }}>Camera permission</button>
 
-      <div style={{ marginTop: "20px", }}>
+        <button type="button" onClick={handleScan} style={{
+          width: "200px",
+          height: "40px",
+          marginTop: "50px",
+          marginRight: "20px",
+        }}>Scan</button>
+      </div>
+
+      <div style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "left",
+        marginTop: "20px",
+      }}>
         <a href="/" style={{ marginRight: "15px", }}>Previous</a>
         <a>Next</a>
       </div>
